@@ -13,7 +13,7 @@ interface ApiInterface {
 
     companion object {
 
-        var BASE_URL = "http://velmm.com/apis/"
+        var BASE_URL = "http://localhost:8080/apis/"
 
         fun create() : ApiInterface {
 

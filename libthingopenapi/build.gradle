@@ -1,0 +1,58 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+plugins {
+    // id 'java-library'
+    id 'org.jetbrains.kotlin.jvm'
+    // The following is needed below for org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+    id("org.openapi.generator") version "5.3.0"
+    // I want to be able to get the openapi file from another repo (SSOT)
+    // used in downloadOpenapi below
+    id 'de.undercouch.download'
+}
+
+dependencies {
+    // Add moshi for Generating a Client From an Existing Specification.
+    implementation("com.squareup.moshi:moshi-kotlin:1.13.0")
+    implementation("com.squareup.moshi:moshi-adapters:1.13.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+}
+
+def oasPackage = "name.hampton.mike.thing"
+// todo: currently the below is using the template, switch to the right one once you write it.
+def oas_name = "template.openapi.yaml"
+def oas_url = "https://raw.githubusercontent.com/michael-reed-hampton/openapi-template/main/$oas_name"
+def oasSpecLocation = project.layout.buildDirectory.file(oas_name)
+def clientOutput = project.layout.buildDirectory.dir("generated-oas-client")
+
+task downloadOpenapi(type: Download) {
+    src oas_url
+    println oasSpecLocation.get()
+    dest oasSpecLocation.get().toString()
+}
+
+// https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
+task generateKotlinClient(type: GenerateTask) {
+    generatorName = "kotlin"
+    input = oasSpecLocation.get().toString()
+    outputDir.set(clientOutput.get().toString())
+    modelPackage.set("${oasPackage}.client.model")
+    apiPackage.set("${oasPackage}.client.api")
+    packageName.set(oasPackage)
+    generatorName.set("kotlin")
+    configOptions = [
+            dateLibrary: "java8",
+            useTags: "true"
+    ]
+    globalProperties = [
+            modelDocs: "true"
+    ]
+}
+
+sourceSets {
+    sourceSets.main.kotlin.srcDirs = ["${clientOutput.get()}/src/main/kotlin"]
+}
+
+// Download the openapi before generating
+generateKotlinClient.dependsOn downloadOpenapi
+// Generate before compiling
+compileKotlin.dependsOn generateKotlinClient

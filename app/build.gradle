@@ -33,6 +33,8 @@ android {
 
 dependencies {
 
+    implementation project(':libthingopenapi')
+
     implementation 'com.squareup.retrofit2:retrofit:'+rootProject.retrofit_version
     implementation 'com.squareup.retrofit2:converter-gson:'+rootProject.retrofit_version
     implementation "androidx.recyclerview:recyclerview:"+rootProject.recycler_view_version
